@@ -1,0 +1,30 @@
+name: Backup GitHub Repo to S3
+
+on:
+  push:
+    branches:
+      - main  # Trigger the backup on pushes to the main branch
+  schedule:
+    - cron: '0 0 * * *'  # Runs the workflow every day at midnight (UTC)
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest  # Uses the latest Ubuntu runner
+
+    steps:
+    # Step 1: Checkout the repository content
+    - name: Checkout repository content
+      uses: actions/checkout@v3  # Checks out the repository code
+
+    # Step 2: Set up AWS CLI credentials and configure AWS access
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1  # Configures AWS CLI with the provided secrets
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}  # GitHub secret for AWS Access Key
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  # GitHub secret for AWS Secret Access Key
+        aws-region: ${{ secrets.AWS_REGION }}  # GitHub secret for AWS region, e.g., 'us-east-1'
+
+    # Step 3: Sync repository content to S3
+    - name: Sync repository to S3
+      run: |
+        aws s3 sync . s3://${{ secrets.S3_BUCKET_NAME }}/$(date +%Y-%m-%d-%H-%M-%S)/ --exclude ".git/*"  # Sync code to S3, excluding .git
