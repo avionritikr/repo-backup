@@ -24,7 +24,14 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  # GitHub secret for AWS Secret Access Key
         aws-region: 'us-east-1'  # Directly specify the AWS region (e.g., 'us-east-1')
 
-    # Step 3: Sync repository content to S3
-    - name: Sync repository to S3
+    # Step 3: Create a zip of the repository
+    - name: Zip the repository contents
       run: |
-        aws s3 sync . s3://${{ secrets.S3_BUCKET_NAME }}/$(date +%Y-%m-%d-%H-%M-%S)/ --exclude ".git/*"  # Sync code to S3, excluding .git
+        # Create a zip archive of the repository, excluding the .git directory
+        zip -r backup-$(date +%Y-%m-%d-%H-%M-%S).zip . -x "*.git/*"
+
+    # Step 4: Upload the zip file to S3 and replace the old backup
+    - name: Upload to S3
+      run: |
+        # Upload the zip file to the S3 bucket, replacing any existing file with the same name
+        aws s3 cp backup-$(date +%Y-%m-%d-%H-%M-%S).zip s3://${{ secrets.S3_BUCKET_NAME }}/backup.zip --region us-east-1
