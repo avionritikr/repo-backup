@@ -5,7 +5,7 @@ on:
     branches:
       - main  # Trigger the backup on pushes to the main branch
   schedule:
-    - cron: '*/2 * * * *'  # Runs the workflow every 2 minutes (UTC)
+    - cron: '*/5 * * * *'  # Runs the workflow every 5 minutes (UTC)
 
 jobs:
   backup:
