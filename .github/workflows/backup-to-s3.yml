@@ -18,27 +18,20 @@ jobs:
 
     # Step 2: Set up AWS CLI credentials and configure AWS access
     - name: Set up AWS CLI
-      uses: aws-actions/configure-aws-credentials@v1  # Configures AWS CLI with the provided secrets
+      uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}  # GitHub secret for AWS Access Key
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  # GitHub secret for AWS Secret Access Key
-        aws-region: 'us-east-1'  # Directly specify the AWS region (e.g., 'us-east-1')
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: 'us-east-1'
 
     # Step 3: Create a zip of the repository
     - name: Zip the repository contents
       run: |
-        # Create a zip archive of the repository, excluding the .git directory
         zip -r backup-$(date +%Y-%m-%d-%H-%M-%S).zip . -x "*.git/*"
 
-    # Step 4: Upload the zip file to S3 and replace the old backup
+    # Step 4: Upload the zip file to S3
     - name: Upload to S3
       run: |
-        # Upload the zip file to the S3 bucket, replacing any existing file with the same name
         aws s3 cp backup-$(date +%Y-%m-%d-%H-%M-%S).zip s3://${{ secrets.S3_BUCKET_NAME }}/backup.zip --region us-east-1
 
-    # Step 5: Notify SNS
-    - name: Notify SNS
-      run: |
-        aws sns publish \
-          --topic-arn arn:aws:sns:us-east-1:967322317739:S3BackupNotifications \
-          --message "Backup uploaded successfully: backup-$(date +%Y-%m-%d-%H-%M-%S).zip"
+    # Step 5: Trigger SNS notification for the S3 event (automated via S3)
