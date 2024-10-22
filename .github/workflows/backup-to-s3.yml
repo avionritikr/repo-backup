@@ -24,14 +24,12 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: 'us-east-1'
 
-    # Step 3: Create a zip of the repository
+    # Step 3: Create a zip of the repository (without a timestamp for overwrite)
     - name: Zip the repository contents
       run: |
-        zip -r backup-$(date +%Y-%m-%d-%H-%M-%S).zip . -x "*.git/*"
+        zip -r backup.zip . -x "*.git/*"  # Name the zip file without a timestamp to replace the old one
 
-    # Step 4: Upload the zip file to S3
+    # Step 4: Upload the zip file to S3 and replace the old backup
     - name: Upload to S3
       run: |
-        aws s3 cp backup-$(date +%Y-%m-%d-%H-%M-%S).zip s3://${{ secrets.S3_BUCKET_NAME }}/backup.zip --region us-east-1
-
-    # Step 5: Trigger SNS notification for the S3 event (automated via S3)
+        aws s3 cp backup.zip s3://${{ secrets.S3_BUCKET_NAME }}/backup.zip --region us-east-1  # Replacing the old file with the same name
