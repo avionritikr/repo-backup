@@ -35,3 +35,10 @@ jobs:
       run: |
         # Upload the zip file to the S3 bucket, replacing any existing file with the same name
         aws s3 cp backup-$(date +%Y-%m-%d-%H-%M-%S).zip s3://${{ secrets.S3_BUCKET_NAME }}/backup.zip --region us-east-1
+
+    # Step 5: Notify SNS
+    - name: Notify SNS
+      run: |
+        aws sns publish \
+          --topic-arn arn:aws:sns:us-east-1:967322317739:S3BackupNotifications \
+          --message "Backup uploaded successfully: backup-$(date +%Y-%m-%d-%H-%M-%S).zip"
